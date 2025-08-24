@@ -1,0 +1,63 @@
+# /construcost/docker-compose.yml
+
+version: '3.8'
+
+services:
+  # backend é o nome do serviço. 
+  backend:
+    # Aqui dizemos que não vamos buscar uma imagem nativa do docker e sim fazer a customizada com a instrução do dockerfile dentro do /backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    # Nome do container
+    container_name: construcost_backend_app
+    # Instrução para reiniciar sempre, se der um erro ou afins, só não vai reiniciar se parado manualmente.
+    restart: unless-stopped
+    # Diretório padrão para execução de comandos no container.
+    working_dir: /var/www/html
+    # (Bind Mount) Faz a conexão de tudo o que existir dentro da pasta src dentro da backend do projeto, vai ser o que vai existir dentro da pasta principal do container
+    volumes:
+      - ./backend/src:/var/www/html
+    # Mapeia a porta do container para a minha maquina, a esquerda minha maquina a direita a do container.
+    ports:
+      - "8000:8000"
+    # Subir no localhost o server do laravel, por hora isso, depois tem que configurar o nginx
+    command: php artisan serve --host=0.0.0.0
+    # Antes de subir depende do serviço db
+    depends_on:
+      - db
+
+  # db é o nome do serviço. 
+  db:
+    # Aqui o build não é customizado, definimos a imagem do postres 16
+    image: postgres:16-alpine 
+    # Nome do container
+    container_name: construcost_db_postgres
+    # Instrução para reiniciar sempre, se der um erro ou afins, só não vai reiniciar se parado manualmente.
+    restart: unless-stopped
+    # Mapeia a porta do container para a minha maquina, a esquerda minha maquina a direita a do container.
+    ports:
+      - "5432:5432"
+    # Variaveis de ambiente definidas aqui, as mesmas que o .env do back deve pegar
+    environment:
+      POSTGRES_DB: construcost
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    # Definido aonde a imagem vai salvar seus arquivos padrão, esse caminho é padrão da imagem do postgres, e 'pgdata' é o nome do volume que o docker salva FORA do container, nos arquivos dele.
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  frontend:
+    # (O serviço do frontend continua o mesmo, sem alterações)
+    image: node:20-alpine
+    container_name: construcost_frontend_app
+    restart: unless-stopped
+    working_dir: /app
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+    command: sh -c "npm install && npm run dev"
+
+volumes:
+  pgdata: # ALTERADO: Nome do volume para o Postgres
