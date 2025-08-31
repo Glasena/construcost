@@ -18,3 +18,9 @@ RUN apt-get update && apt-get install -y \
 # buscamos da imagem do composer 'composer:latest'
 # dentro de '/usr/bin/composer' da imagem colamos em '/usr/bin/composer' no WORKDIR
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Aqui instalamos as dependências do projeto
+RUN composer install
+
+# O comando para rodar os testes
+RUN php artisan test

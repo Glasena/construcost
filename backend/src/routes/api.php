@@ -1,11 +1,8 @@
 <?php
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Route;
+require base_path('app/Modules/Auth/routes/api.php');
 
-Route::get('/user', function (Request $request) {
-    return $request->user();
-})->middleware('auth:sanctum');
+use Illuminate\Support\Facades\Route;
 
 Route::get('/ping', function () {
     return ['message' => 'pong'];
